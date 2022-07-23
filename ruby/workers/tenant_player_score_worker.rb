@@ -13,6 +13,9 @@ class TenantPlayerScoreWorker
   sidekiq_options queue: "default"
 
   def perform(tenant_id, player_id)
+    # FIXME: connect_to_tenant_dbでエラーになるので無理やり設定する
+    @trace_file_path = ""
+
     with_sentry do
       connect_to_tenant_db(tenant_id) do |tenant_db|
         competitions = tenant_db.execute('SELECT * FROM competition WHERE tenant_id = ? ORDER BY created_at ASC', [v.tenant_id]).map { |row| CompetitionRow.new(row) }
