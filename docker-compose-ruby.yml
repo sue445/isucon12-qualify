@@ -24,20 +24,20 @@ services:
       - /home/isucon/tmp:/home/isucon/tmp
     init: true
 
-#  datadog:
-#    image: gcr.io/datadoghq/agent:latest
-#
-#    depends_on:
-#      - webapp
-#
-#    restart: always
-#
-#    environment:
-#      - DD_API_KEY
-#      - DD_LOG_LEVEL=WARN
-#
-#    volumes:
-#      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-#      - "/proc/:/host/proc/:ro"
-#      - "/sys/fs/cgroup/:/host/sys/fs/cgroup:ro"
-#      - "/etc/datadog-agent/conf.d/:/etc/datadog-agent/conf.d/:ro"
+  datadog:
+    image: gcr.io/datadoghq/agent:latest
+
+    depends_on:
+      - webapp
+
+    restart: always
+
+    environment:
+      - DD_API_KEY
+      - DD_LOG_LEVEL=WARN
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/proc/:/host/proc/:ro"
+      - "/sys/fs/cgroup/:/host/sys/fs/cgroup:ro"
+      - "/etc/datadog-agent/conf.d/:/etc/datadog-agent/conf.d/:ro"

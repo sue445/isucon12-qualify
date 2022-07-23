@@ -25,6 +25,8 @@ ENV["DD_TRACE_SAMPLE_RATE"] = "1.0"
 Datadog.configure do |c|
   app_name = "isucon"
 
+  c.tracer hostname: 'datadog', port: 8126
+
   # Global settings
   c.version = GIT_REVISION
   c.runtime_metrics.enabled = true
