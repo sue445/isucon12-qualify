@@ -81,11 +81,11 @@ namespace :deploy do
       exec ip_address, "sudo systemctl daemon-reload"
 
       # TODO: 終了10分前にdisableすること！！！！！！
-      exec_service ip_address, service: "datadog-agent", enabled: true
-      exec_service ip_address, service: "td-agent", enabled: true
+      # exec_service ip_address, service: "datadog-agent", enabled: true
+      exec_service ip_address, service: "td-agent", enabled: false
 
       # FIXME: datadog-agentをdisableにしてもなぜかreboot後に起動することがあるので確実に止めるためにアンインストールする
-      # exec ip_address, "sudo apt-get remove -y datadog-agent"
+      exec ip_address, "sudo apt-get remove -y datadog-agent"
 
       # mysql, mariadb
       case name
