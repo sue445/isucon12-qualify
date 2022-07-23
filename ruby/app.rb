@@ -438,7 +438,7 @@ module Isuports
           #   tenant_db.execute('INSERT INTO player_score (id, tenant_id, player_id, competition_id, score, row_num, created_at, updated_at) VALUES (:id, :tenant_id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at)', ps.to_h)
           # end
 
-          sql = <<~SQL
+          sql = <<~SQL.dup
             INSERT INTO player_score (id, tenant_id, player_id, competition_id, score, row_num, created_at, updated_at) VALUES
           SQL
           sql << " "
