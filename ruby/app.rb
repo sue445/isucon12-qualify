@@ -16,7 +16,7 @@ require_relative 'sqltrace'
 
 module Isuports
   class App < Sinatra::Base
-    enable :logging
+    disable :logging
     set :show_exceptions, :after_handler
     configure :development do
       require 'sinatra/reloader'
