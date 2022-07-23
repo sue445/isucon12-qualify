@@ -68,7 +68,7 @@ module Isuports
     # エラー処理
     error HttpError do
       e = env['sinatra.error']
-      logger.error("error at #{request.path}: #{e.message}")
+      
       content_type :json
       status e.code
       JSON.dump(status: false)
