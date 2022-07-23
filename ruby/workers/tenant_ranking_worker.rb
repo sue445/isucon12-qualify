@@ -14,6 +14,7 @@ class TenantRankingWorker
   sidekiq_options queue: "default"
 
   def perform(tenant_id, competition_id)
+    @trace_file_path = ""
     with_sentry do
       connect_to_tenant_db(tenant_id) do |tenant_db|
         # player_scoreを読んでいるときに更新が走ると不整合が起こるのでロックを取得する
