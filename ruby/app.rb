@@ -379,6 +379,9 @@ module Isuports
         raise HttpError.new(403, 'role organizer required')
       end
 
+      response = nil
+      competition_id = nil
+
       connect_to_tenant_db(v.tenant_id) do |tenant_db|
         competition_id = params[:competition_id]
         comp = retrieve_competition(tenant_db, competition_id)
@@ -433,16 +436,25 @@ module Isuports
             tenant_db.execute('INSERT INTO player_score (id, tenant_id, player_id, competition_id, score, row_num, created_at, updated_at) VALUES (:id, :tenant_id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at)', ps.to_h)
           end
 
-          TenantRankingWorker.perform_async(v.tenant_id, competition_id)
+          # json(
+          #   status: true,
+          #   data: {
+          #     rows: player_score_rows.size,
+          #   },
+          # )
 
-          json(
+          response = {
             status: true,
             data: {
               rows: player_score_rows.size,
             },
-          )
+          }
         end
       end
+
+      TenantRankingWorker.perform_async(v.tenant_id, competition_id)
+
+      json(response)
     end
 
     # テナント内の課金レポートを取得する
