@@ -685,7 +685,7 @@ module Isuports
         connect_to_tenant_db(tenant[:id]) do |tenant_db|
           tenant_db.execute('SELECT * FROM competition WHERE tenant_id=?', [tenant[:id]]) do |row|
             comp = CompetitionRow.new(row)
-            TenantRankingWorker.new.perform(tenant[:id], comp.id)
+            TenantRankingWorker.perform_async(tenant[:id], comp.id)
           end
         end
       end
