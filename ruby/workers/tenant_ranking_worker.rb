@@ -42,7 +42,7 @@ class TenantRankingWorker
 
           ranks.sort_by! { |a| [-a.score, a.row_num] }
 
-          save_value_to_redis(ranking_key(tenant_id:tenant_id, competition_id: competition_id), ranks)
+          save_ranking_to_redis(tenant_id:tenant_id, competition_id: competition_id, value: ranks)
         end
       end
     end

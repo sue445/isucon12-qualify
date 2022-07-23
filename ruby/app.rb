@@ -606,8 +606,7 @@ module Isuports
           #
           # ranks.sort_by! { |a| [-a.score, a.row_num] }
 
-          ranks = get_value_from_redis(ranking_key(tenant_id: v.tenant_id, competition_id: competition_id))
-          ranks = [] unless ranks
+          ranks = get_ranking_from_redis(tenant_id: v.tenant_id, competition_id: competition_id)
 
           paged_ranks = ranks.drop(rank_after).take(100).map.with_index do |rank, i|
             {
