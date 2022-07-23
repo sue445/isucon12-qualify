@@ -91,8 +91,8 @@ RestartSec=1
 Restart=on-failure
 
 # output goes to /var/log/syslog (Ubuntu) or /var/log/messages (CentOS)
-StandardOutput=syslog
-StandardError=syslog
+# StandardOutput=syslog
+# StandardError=syslog
 
 # This will default to "bundler" if we don't specify it
 SyslogIdentifier=sidekiq
