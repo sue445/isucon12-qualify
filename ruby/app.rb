@@ -81,6 +81,8 @@ module Isuports
       end
     end
 
+    helpers IsuconHelper
+
     # エラー処理
     error HttpError do
       e = env['sinatra.error']
@@ -89,8 +91,6 @@ module Isuports
       status e.code
       JSON.dump(status: false)
     end
-
-    helpers IsuconHelper
 
     # SaaS管理者向けAPI
 
