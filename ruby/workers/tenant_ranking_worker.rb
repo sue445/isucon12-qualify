@@ -2,12 +2,14 @@ require "sidekiq"
 require "mysql2-cs-bind"
 
 require_relative "../config/sentry_methods"
+require_relative "../config/redis_methods"
 require_relative "../isucon_helper"
 
 class TenantRankingWorker
   include Sidekiq::Worker
   include SentryMethods
   include IsuconHelper
+  include RedisMethods
 
   sidekiq_options queue: "default"
 

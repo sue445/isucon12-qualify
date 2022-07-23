@@ -52,4 +52,17 @@ module RedisMethods
   def initialize_redis
     $redis.flushall
   end
+
+  def get_value_from_redis(key)
+    json = $redis.get(key)
+    return nil unless json
+
+    Oj.load(json)
+  end
+
+  def save_value_to_redis(key, value)
+    data = Oj.dump(value)
+
+    $redis.set(key, data)
+  end
 end
