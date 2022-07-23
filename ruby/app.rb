@@ -536,36 +536,52 @@ module Isuports
         unless player
           raise HttpError.new(404, 'player not found')
         end
-        competitions = tenant_db.execute('SELECT * FROM competition WHERE tenant_id = ? ORDER BY created_at ASC', [v.tenant_id]).map { |row| CompetitionRow.new(row) }
-        # player_scoreを読んでいるときに更新が走ると不整合が起こるのでロックを取得する
-        flock_by_tenant_id(v.tenant_id) do
-          player_score_rows = competitions.filter_map do |c|
-            # 最後にCSVに登場したスコアを採用する = row_numが一番大きいもの
-            row = tenant_db.get_first_row('SELECT * FROM player_score WHERE tenant_id = ? AND competition_id = ? AND player_id = ? ORDER BY row_num DESC LIMIT 1', [v.tenant_id, c.id, player.id])
-            if row
-              PlayerScoreRow.new(row)
-            else
-              # 行がない = スコアが記録されてない
-              nil
-            end
-          end
 
-          scores = player_score_rows.map do |ps|
-            comp = retrieve_competition(tenant_db, ps.competition_id)
-            {
-              competition_title: comp.title,
-              score: ps.score,
-            }
-          end
+        # competitions = tenant_db.execute('SELECT * FROM competition WHERE tenant_id = ? ORDER BY created_at ASC', [v.tenant_id]).map { |row| CompetitionRow.new(row) }
+        # # player_scoreを読んでいるときに更新が走ると不整合が起こるのでロックを取得する
+        # flock_by_tenant_id(v.tenant_id) do
+        #   player_score_rows = competitions.filter_map do |c|
+        #     # 最後にCSVに登場したスコアを採用する = row_numが一番大きいもの
+        #     row = tenant_db.get_first_row('SELECT * FROM player_score WHERE tenant_id = ? AND competition_id = ? AND player_id = ? ORDER BY row_num DESC LIMIT 1', [v.tenant_id, c.id, player.id])
+        #     if row
+        #       PlayerScoreRow.new(row)
+        #     else
+        #       # 行がない = スコアが記録されてない
+        #       nil
+        #     end
+        #   end
+        #
+        #   scores = player_score_rows.map do |ps|
+        #     comp = retrieve_competition(tenant_db, ps.competition_id)
+        #     {
+        #       competition_title: comp.title,
+        #       score: ps.score,
+        #     }
+        #   end
+        #
+        #   json(
+        #     status: true,
+        #     data: {
+        #       player: player.to_h.slice(:id, :display_name, :is_disqualified),
+        #       scores:,
+        #     },
+        #   )
+        # end
 
-          json(
-            status: true,
-            data: {
-              player: player.to_h.slice(:id, :display_name, :is_disqualified),
-              scores:,
-            },
-          )
+        scores = get_player_score_from_redis(tenant_id: v.tenant_id, player_id: player.id)
+        unless scores
+          # redisになかった場合は念の為手動でworkerを再実行する
+          TenantPlayerScoreWorker.new.perform(v.tenant_id, player.id)
+          scores = get_player_score_from_redis(tenant_id: v.tenant_id, player_id: player.id)
         end
+
+        json(
+          status: true,
+          data: {
+            player: player.to_h.slice(:id, :display_name, :is_disqualified),
+            scores:,
+          },
+        )
       end
     end
 
