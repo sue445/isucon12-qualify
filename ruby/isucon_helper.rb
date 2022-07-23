@@ -10,6 +10,14 @@ module IsuconHelper
   CompetitionRow = Struct.new(:tenant_id, :id, :title, :finished_at, :created_at, :updated_at, keyword_init: true)
   PlayerScoreRow = Struct.new(:tenant_id, :id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at, keyword_init: true)
 
+  # アクセスしてきた人の情報
+  Viewer = Struct.new(:role, :player_id, :tenant_name, :tenant_id, keyword_init: true)
+
+  # 正しいテナント名の正規表現
+  TENANT_NAME_REGEXP = /^[a-z][a-z0-9-]{0,61}[a-z0-9]$/
+
+  TENANT_DB_SCHEMA_FILE_PATH = '../sql/tenant/10_schema.sql'
+
   class HttpError < StandardError
     attr_reader :code
 

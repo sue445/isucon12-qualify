@@ -53,7 +53,7 @@ module Isuports
       cache_control :private
     end
 
-    TENANT_DB_SCHEMA_FILE_PATH = '../sql/tenant/10_schema.sql'
+    # TENANT_DB_SCHEMA_FILE_PATH = '../sql/tenant/10_schema.sql'
     INITIALIZE_SCRIPT = '../sql/init.sh'
     # COOKIE_NAME = 'isuports_session'
 
@@ -63,10 +63,10 @@ module Isuports
     # ROLE_NONE = 'none'
 
     # 正しいテナント名の正規表現
-    TENANT_NAME_REGEXP = /^[a-z][a-z0-9-]{0,61}[a-z0-9]$/
+    # TENANT_NAME_REGEXP = /^[a-z][a-z0-9-]{0,61}[a-z0-9]$/
 
     # アクセスしてきた人の情報
-    Viewer = Struct.new(:role, :player_id, :tenant_name, :tenant_id, keyword_init: true)
+    # Viewer = Struct.new(:role, :player_id, :tenant_name, :tenant_id, keyword_init: true)
 
     # TenantRow = Struct.new(:id, :name, :display_name, :created_at, :updated_at, keyword_init: true)
     # PlayerRow = Struct.new(:tenant_id, :id, :display_name, :is_disqualified, :created_at, :updated_at, keyword_init: true)
