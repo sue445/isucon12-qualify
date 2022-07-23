@@ -1,3 +1,5 @@
+require "sqlite3"
+
 module IsuconHelper
   ROLE_ADMIN = 'admin'
   ROLE_ORGANIZER = 'organizer'
