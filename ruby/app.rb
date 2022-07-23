@@ -35,6 +35,7 @@ require_relative "./config/enable_monitoring"
 require_relative "./config/thread_helper"
 
 require_relative "./workers/tenant_ranking_worker"
+require_relative "./workers/tenant_player_score_worker"
 
 module Isuports
   class App < Sinatra::Base
@@ -458,6 +459,10 @@ module Isuports
             ]
           end
           tenant_db.execute(sql, sql_values)
+
+          player_score_rows.each do |ps|
+            TenantPlayerScoreWorker.perform_async(v.tenant_id, ps.player_id)
+          end
 
           # json(
           #   status: true,
