@@ -37,8 +37,8 @@ group :development do
 end
 
 # 必要に応じて使う
-# gem "connection_pool"
+gem "connection_pool"
 # gem "puma_worker_killer", require: false
-# gem "redis"
+gem "redis"
 gem "sidekiq"
 gem "sidekiq-cron"

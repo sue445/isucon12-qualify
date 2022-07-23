@@ -130,6 +130,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  connection_pool
   datadog_thread_tracer
   ddtrace (>= 1.0.0)
   irb
@@ -140,6 +141,7 @@ DEPENDENCIES
   oj
   parallel
   puma
+  redis
   rubocop-isucon!
   rubocop_auto_corrector
   sentry-ruby
