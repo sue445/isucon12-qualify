@@ -52,4 +52,21 @@ module RedisMethods
   def initialize_redis
     $redis.flushall
   end
+
+  def get_ranking_from_redis(tenant_id:, competition_id:)
+    cached_response = $redis.get(ranking_key(tenant_id:tenant_id, competition_id: competition_id))
+    return nil unless cached_response
+
+    Marshal.load(cached_response)
+  end
+
+  def save_ranking_to_redis(tenant_id:, competition_id:, value:)
+    data = Marshal.dump(value)
+
+    $redis.set(ranking_key(tenant_id:tenant_id, competition_id: competition_id), data)
+  end
+
+  def ranking_key(tenant_id:, competition_id:)
+    "ranking:#{tenant_id}:#{competition_id}"
+  end
 end

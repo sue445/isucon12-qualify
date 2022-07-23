@@ -25,7 +25,7 @@ require_relative "./config/sentry_methods"
 require_relative "./config/oj_encoder"
 require_relative "./config/oj_to_json_patch"
 # require_relative "./config/redis_methods"
-# require_relative "./config/sidekiq"
+require_relative "./config/sidekiq"
 # require_relative "./config/sidekiq_methods"
 
 # TODO: 終了直前にコメントアウトする
@@ -34,9 +34,12 @@ require_relative "./config/enable_monitoring"
 # NOTE: enable_monitoringでddtraceとdatadog_thread_tracerをrequireしてるのでenable_monitoringをrequireした後でrequireする必要がある
 require_relative "./config/thread_helper"
 
+require_relative "./workers/tenant_ranking_worker"
+
 module Isuports
   class App < Sinatra::Base
     include SentryMethods
+    include RedisMethods
     # using Mysql2::NestedHashBind::QueryExtension
 
     set :json_encoder, OjEncoder.instance
@@ -377,6 +380,9 @@ module Isuports
         raise HttpError.new(403, 'role organizer required')
       end
 
+      response = nil
+      competition_id = nil
+
       connect_to_tenant_db(v.tenant_id) do |tenant_db|
         competition_id = params[:competition_id]
         comp = retrieve_competition(tenant_db, competition_id)
@@ -431,14 +437,25 @@ module Isuports
             tenant_db.execute('INSERT INTO player_score (id, tenant_id, player_id, competition_id, score, row_num, created_at, updated_at) VALUES (:id, :tenant_id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at)', ps.to_h)
           end
 
-          json(
+          # json(
+          #   status: true,
+          #   data: {
+          #     rows: player_score_rows.size,
+          #   },
+          # )
+
+          response = {
             status: true,
             data: {
               rows: player_score_rows.size,
             },
-          )
+          }
         end
       end
+
+      TenantRankingWorker.perform_async(v.tenant_id, competition_id)
+
+      json(response)
     end
 
     # テナント内の課金レポートを取得する
@@ -525,7 +542,7 @@ module Isuports
       end
     end
 
-    CompetitionRank = Struct.new(:rank, :score, :player_id, :player_display_name, :row_num, keyword_init: true)
+    # CompetitionRank = Struct.new(:rank, :score, :player_id, :player_display_name, :row_num, keyword_init: true)
 
     # 大会ごとのランキングを取得する
     get '/api/player/competition/:competition_id/ranking' do
@@ -558,58 +575,33 @@ module Isuports
             0
           end
 
-        # player_scoreを読んでいるときに更新が走ると不整合が起こるのでロックを取得する
-        flock_by_tenant_id(v.tenant_id) do
-          ranks = []
-          scored_player_set = Set.new
-          tenant_db.execute('SELECT * FROM player_score WHERE tenant_id = ? AND competition_id = ? ORDER BY row_num DESC', [tenant.id, competition_id]) do |row|
-            ps = PlayerScoreRow.new(row)
-            # player_scoreが同一player_id内ではrow_numの降順でソートされているので
-            # 現れたのが2回目以降のplayer_idはより大きいrow_numでスコアが出ているとみなせる
-            if scored_player_set.member?(ps.player_id)
-              next
-            end
-            scored_player_set.add(ps.player_id)
-            player = retrieve_player(tenant_db, ps.player_id)
-            ranks.push(CompetitionRank.new(
-              score: ps.score,
-              player_id: player.id,
-              player_display_name: player.display_name,
-              row_num: ps.row_num,
-            ))
-          end
-
-          # ranks.sort! do |a, b|
-          #   if a.score == b.score
-          #     a.row_num <=> b.row_num
-          #   else
-          #     b.score <=> a.score
-          #   end
-          # end
-
-          ranks.sort_by! { |a| [-a.score, a.row_num] }
-
-          paged_ranks = ranks.drop(rank_after).take(100).map.with_index do |rank, i|
-            {
-              rank: rank_after + i + 1,
-              score: rank.score,
-              player_id: rank.player_id,
-              player_display_name: rank.player_display_name,
-            }
-          end
-
-          json(
-            status: true,
-            data: {
-              competition: {
-                id: competition.id,
-                title: competition.title,
-                is_finished: !competition.finished_at.nil?,
-              },
-              ranks: paged_ranks,
-            },
-          )
+        ranks = get_ranking_from_redis(tenant_id: v.tenant_id, competition_id: competition_id)
+        unless ranks
+          # redisにない場合は念の為workerを手動実行する
+          TenantRankingWorker.new.perform(v.tenant_id, competition_id)
+          ranks = get_ranking_from_redis(tenant_id: v.tenant_id, competition_id: competition_id)
         end
+
+        paged_ranks = ranks.drop(rank_after).take(100).map.with_index do |rank, i|
+          {
+            rank: rank_after + i + 1,
+            score: rank.score,
+            player_id: rank.player_id,
+            player_display_name: rank.player_display_name,
+          }
+        end
+
+        json(
+          status: true,
+          data: {
+            competition: {
+              id: competition.id,
+              title: competition.title,
+              is_finished: !competition.finished_at.nil?,
+            },
+            ranks: paged_ranks,
+          },
+        )
       end
     end
 
@@ -692,6 +684,23 @@ module Isuports
       unless status.success?
         raise HttpError.new(500, "error command execution: #{out}")
       end
+
+      # FIXME: timeoutするので無効化
+      # ThreadHelper.trace do |tracer|
+      #   # 初期データで手動でworkerを実行する
+      #   admin_db.xquery('SELECT id FROM tenant').each do |tenant|
+      #     connect_to_tenant_db(tenant[:id]) do |tenant_db|
+      #       tenant_db.execute('SELECT * FROM competition WHERE tenant_id=?', [tenant[:id]]) do |row|
+      #         comp = CompetitionRow.new(row)
+      #
+      #         tracer.trace(thread_args: [tenant[:id], comp.id]) do |tenant_id, comp_id|
+      #           TenantRankingWorker.new.perform(tenant_id, comp_id)
+      #         end
+      #       end
+      #     end
+      #   end
+      # end
+
       json(
         status: true,
         data: {

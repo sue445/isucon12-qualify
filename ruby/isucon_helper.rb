@@ -1,3 +1,5 @@
+require "sqlite3"
+
 module IsuconHelper
   ROLE_ADMIN = 'admin'
   ROLE_ORGANIZER = 'organizer'
@@ -9,6 +11,7 @@ module IsuconHelper
   PlayerRow = Struct.new(:tenant_id, :id, :display_name, :is_disqualified, :created_at, :updated_at, keyword_init: true)
   CompetitionRow = Struct.new(:tenant_id, :id, :title, :finished_at, :created_at, :updated_at, keyword_init: true)
   PlayerScoreRow = Struct.new(:tenant_id, :id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at, keyword_init: true)
+  CompetitionRank = Struct.new(:rank, :score, :player_id, :player_display_name, :row_num, keyword_init: true)
 
   # アクセスしてきた人の情報
   Viewer = Struct.new(:role, :player_id, :tenant_name, :tenant_id, keyword_init: true)

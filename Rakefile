@@ -15,8 +15,8 @@ require "json"
 # デプロイ先のサーバ
 HOSTS = {
   host01: "isucon-01", # nginx, MySQL, auth
-  host02: "isucon-02", # app
-  host03: "isucon-03", # auth
+  host02: "isucon-02", # app, sidekiq
+  host03: "isucon-03", # auth, redis
 }
 
 INITIALIZE_ENDPOINT = "http://#{HOSTS[:host01]}/initialize"
@@ -75,7 +75,7 @@ namespace :deploy do
       exec ip_address, "git reset --hard origin/#{current_branch}" # force push対策
 
       exec ip_address, "sudo cp infra/systemd/#{APP_SERVICE_NAME} /etc/systemd/system/#{APP_SERVICE_NAME}"
-      # exec ip_address, "sudo cp infra/systemd/isucon-sidekiq.service /etc/systemd/system/isucon-sidekiq.service"
+      exec ip_address, "sudo cp infra/systemd/isucon-sidekiq.service /etc/systemd/system/isucon-sidekiq.service"
 
       # systemdの更新後にdaemon-reloadする
       exec ip_address, "sudo systemctl daemon-reload"
@@ -130,28 +130,28 @@ namespace :deploy do
 
       # redis
       case name
-      when :host01
-        # exec ip_address, "sudo cp infra/redis/redis.conf /etc/redis/redis.conf"
-        # exec_service ip_address, service: "redis-server", enabled: true
-        # exec ip_address, "redis-cli flushall"
+      when :host03
+        exec ip_address, "sudo cp infra/redis/redis.conf /etc/redis/redis.conf"
+        exec_service ip_address, service: "redis-server", enabled: true
+        exec ip_address, "redis-cli flushall"
       else
-        # exec_service ip_address, service: "redis-server", enabled: false
+        exec_service ip_address, service: "redis-server", enabled: false
       end
 
       # sidekiq
       case name
-      when :host01
-        # exec ip_address, "#{BUNDLE} config set --local path 'vendor/bundle'", cwd: RUBY_APP_DIR
-        # exec ip_address, "#{BUNDLE} config set --local jobs $(nproc)", cwd: RUBY_APP_DIR
-        # exec ip_address, "#{BUNDLE} config set --local without development test", cwd: RUBY_APP_DIR
+      when :host02
+        exec ip_address, "#{BUNDLE} config set --local path 'vendor/bundle'", cwd: RUBY_APP_DIR
+        exec ip_address, "#{BUNDLE} config set --local jobs $(nproc)", cwd: RUBY_APP_DIR
+        exec ip_address, "#{BUNDLE} config set --local without development test", cwd: RUBY_APP_DIR
 
         # exec ip_address, "#{BUNDLE} install", cwd: RUBY_APP_DIR
         # FIXME: ruby 3.2.0-devだとddtraceのnative extensionのbuildに失敗するのでこっちを使う
-        # exec ip_address, "DD_PROFILING_NO_EXTENSION=true #{BUNDLE} install", cwd: RUBY_APP_DIR
+        exec ip_address, "DD_PROFILING_NO_EXTENSION=true #{BUNDLE} install", cwd: RUBY_APP_DIR
 
-        # exec_service ip_address, service: "isucon-sidekiq", enabled: true
+        exec_service ip_address, service: "isucon-sidekiq", enabled: true
       else
-        # exec_service ip_address, service: "isucon-sidekiq", enabled: false
+        exec_service ip_address, service: "isucon-sidekiq", enabled: false
       end
 
       # docker-compose

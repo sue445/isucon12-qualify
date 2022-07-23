@@ -1,7 +1,7 @@
 # sidekiqの設定
 require "sidekiq"
 require_relative "../workers/sidekiq_stats_worker"
-# require_relative "../workers/dummy_worker"
+require_relative "../workers/tenant_ranking_worker"
 
 # TODO: workerクラスをrequireした後にrequireすること
 require_relative "./enable_monitoring"
