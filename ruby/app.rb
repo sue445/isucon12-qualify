@@ -31,7 +31,7 @@ require_relative "./config/sentry_methods"
 require_relative "./config/enable_monitoring"
 
 # NOTE: enable_monitoringでddtraceとdatadog_thread_tracerをrequireしてるのでenable_monitoringをrequireした後でrequireする必要がある
-# require_relative "./config/thread_helper"
+require_relative "./config/thread_helper"
 
 module Isuports
   class App < Sinatra::Base
@@ -447,30 +447,73 @@ module Isuports
       #   を合計したものを
       # テナントの課金とする
       tenant_billings = []
+
       # TODO: Remove needless columns if necessary
-      admin_db.xquery('SELECT `id`, `name`, `display_name`, `created_at`, `updated_at` FROM tenant ORDER BY id DESC').each do |row|
-        t = TenantRow.new(row)
-        if before_id && before_id <= t.id
-          next
-        end
-        billing_yen = 0
-        connect_to_tenant_db(t.id) do |tenant_db|
-          tenant_db.execute('SELECT * FROM competition WHERE tenant_id=?', [t.id]) do |row|
-            comp = CompetitionRow.new(row)
-            report = billing_report_by_competition(tenant_db, t.id, comp.id)
-            billing_yen += report.billing_yen
+      # admin_db.xquery('SELECT `id`, `name`, `display_name`, `created_at`, `updated_at` FROM tenant ORDER BY id DESC').each do |row|
+      #   t = TenantRow.new(row)
+      #   if before_id && before_id <= t.id
+      #     next
+      #   end
+      #   billing_yen = 0
+      #   connect_to_tenant_db(t.id) do |tenant_db|
+      #     tenant_db.execute('SELECT * FROM competition WHERE tenant_id=?', [t.id]) do |row|
+      #       comp = CompetitionRow.new(row)
+      #       report = billing_report_by_competition(tenant_db, t.id, comp.id)
+      #       billing_yen += report.billing_yen
+      #     end
+      #   end
+      #   tenant_billings.push({
+      #     id: t.id.to_s,
+      #     name: t.name,
+      #     display_name: t.display_name,
+      #     billing: billing_yen,
+      #   })
+      #   if tenant_billings.size >= 10
+      #     break
+      #   end
+      # end
+
+      # TODO: Remove needless columns if necessary
+      tenants = admin_db.xquery('SELECT `id`, `name`, `display_name`, `created_at`, `updated_at` FROM tenant ORDER BY id DESC')
+      ThreadHelper.trace do |tracer|
+        tenant_count = 0
+
+        tenants.each do |row|
+          t = TenantRow.new(row)
+          if before_id && before_id <= t.id
+            next
+          end
+
+          tenant_count += 1
+
+          break if tenant_count > 10
+
+          tracer.trace(trace_name: "tenant_#{t.id}", thread_args: [t]) do |t|
+            billing_yen = 0
+            connect_to_tenant_db(t.id) do |tenant_db|
+              tenant_db.execute('SELECT * FROM competition WHERE tenant_id=?', [t.id]) do |row|
+                comp = CompetitionRow.new(row)
+                report = billing_report_by_competition(tenant_db, t.id, comp.id)
+                billing_yen += report.billing_yen
+              end
+            end
+            tenant_billings.push(
+              {
+                id: t.id,
+                name: t.name,
+                display_name: t.display_name,
+                billing: billing_yen,
+              }
+            )
           end
         end
-        tenant_billings.push({
-          id: t.id.to_s,
-          name: t.name,
-          display_name: t.display_name,
-          billing: billing_yen,
-        })
-        if tenant_billings.size >= 10
-          break
-        end
       end
+
+      tenant_billings.sort_by! { |t| -t[:id] }
+      tenant_billings.each do |t|
+        t[:id] = t[:id].to_s
+      end
+
       json(
         status: true,
         data: {
