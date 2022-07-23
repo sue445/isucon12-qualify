@@ -5,7 +5,7 @@ require_relative "../workers/tenant_ranking_worker"
 require_relative "../workers/tenant_player_score_worker"
 
 # TODO: workerクラスをrequireした後にrequireすること
-require_relative "./enable_monitoring"
+# require_relative "./enable_monitoring"
 
 sidekiq_redis_url = "redis://#{ENV.fetch("REDIS_HOST")}:#{ENV.fetch("REDIS_PORT", "6379")}/0"
 

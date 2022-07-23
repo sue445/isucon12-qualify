@@ -12,6 +12,7 @@ Group=isucon
 WorkingDirectory=/home/isucon/webapp/ruby
 # ExecStart=docker compose -f docker-compose-ruby.yml up --build
 # ExecStop=docker compose -f docker-compose-ruby.yml down
+LogLevelMax=3
 
 ExecStart=/home/isucon/local/ruby/versions/3.2.0-dev/bin/bundle exec puma -C config/puma_isucon.rb
 ExecStop=/bin/kill -s QUIT $MAINPID

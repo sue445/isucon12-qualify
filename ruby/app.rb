@@ -29,7 +29,7 @@ require_relative "./config/sidekiq"
 # require_relative "./config/sidekiq_methods"
 
 # TODO: 終了直前にコメントアウトする
-require_relative "./config/enable_monitoring"
+# require_relative "./config/enable_monitoring"
 
 # NOTE: enable_monitoringでddtraceとdatadog_thread_tracerをrequireしてるのでenable_monitoringをrequireした後でrequireする必要がある
 require_relative "./config/thread_helper"
