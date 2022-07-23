@@ -541,7 +541,7 @@ module Isuports
       end
     end
 
-    CompetitionRank = Struct.new(:rank, :score, :player_id, :player_display_name, :row_num, keyword_init: true)
+    # CompetitionRank = Struct.new(:rank, :score, :player_id, :player_display_name, :row_num, keyword_init: true)
 
     # 大会ごとのランキングを取得する
     get '/api/player/competition/:competition_id/ranking' do
