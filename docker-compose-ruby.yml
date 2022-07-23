@@ -14,6 +14,7 @@ services:
       PUMA_LOGGING: false
       PUMA_WORKER_KILLER: false
       SENTRY_DSN: ${SENTRY_DSN}
+      RACK_ENV: production
     network_mode: host
     volumes:
       - /home/isucon/webapp/tenant_db:/home/isucon/webapp/tenant_db
