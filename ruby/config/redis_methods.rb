@@ -55,7 +55,7 @@ module RedisMethods
 
   def get_ranking_from_redis(tenant_id:, competition_id:)
     cached_response = $redis.get(ranking_key(tenant_id:tenant_id, competition_id: competition_id))
-    return [] unless cached_response
+    return nil unless cached_response
 
     Marshal.load(cached_response)
   end
