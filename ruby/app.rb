@@ -819,13 +819,17 @@ module Isuports
               row_num: ps.row_num,
             ))
           end
-          ranks.sort! do |a, b|
-            if a.score == b.score
-              a.row_num <=> b.row_num
-            else
-              b.score <=> a.score
-            end
-          end
+
+          # ranks.sort! do |a, b|
+          #   if a.score == b.score
+          #     a.row_num <=> b.row_num
+          #   else
+          #     b.score <=> a.score
+          #   end
+          # end
+
+          ranks.sort_by! { |a| [-a.score, a.row_num] }
+
           paged_ranks = ranks.drop(rank_after).take(100).map.with_index do |rank, i|
             {
               rank: rank_after + i + 1,
