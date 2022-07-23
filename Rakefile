@@ -214,6 +214,6 @@ task :record do
   end
 end
 
-task :all => [:setup, :deploy, :initialize, :record]
+task :all => [:setup, :deploy, :record]
 
 task :default => :all
