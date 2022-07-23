@@ -65,4 +65,8 @@ module RedisMethods
 
     $redis.set(key, data)
   end
+
+  def ranking_key(tenant_id:, competition_id:)
+    "ranking:#{tenant_id}:#{competition_id}"
+  end
 end
