@@ -5,6 +5,11 @@ module IsuconHelper
   ROLE_NONE = 'none'
   COOKIE_NAME = 'isuports_session'
 
+  TenantRow = Struct.new(:id, :name, :display_name, :created_at, :updated_at, keyword_init: true)
+  PlayerRow = Struct.new(:tenant_id, :id, :display_name, :is_disqualified, :created_at, :updated_at, keyword_init: true)
+  CompetitionRow = Struct.new(:tenant_id, :id, :title, :finished_at, :created_at, :updated_at, keyword_init: true)
+  PlayerScoreRow = Struct.new(:tenant_id, :id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at, keyword_init: true)
+
   class HttpError < StandardError
     attr_reader :code
 

@@ -68,10 +68,10 @@ module Isuports
     # アクセスしてきた人の情報
     Viewer = Struct.new(:role, :player_id, :tenant_name, :tenant_id, keyword_init: true)
 
-    TenantRow = Struct.new(:id, :name, :display_name, :created_at, :updated_at, keyword_init: true)
-    PlayerRow = Struct.new(:tenant_id, :id, :display_name, :is_disqualified, :created_at, :updated_at, keyword_init: true)
-    CompetitionRow = Struct.new(:tenant_id, :id, :title, :finished_at, :created_at, :updated_at, keyword_init: true)
-    PlayerScoreRow = Struct.new(:tenant_id, :id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at, keyword_init: true)
+    # TenantRow = Struct.new(:id, :name, :display_name, :created_at, :updated_at, keyword_init: true)
+    # PlayerRow = Struct.new(:tenant_id, :id, :display_name, :is_disqualified, :created_at, :updated_at, keyword_init: true)
+    # CompetitionRow = Struct.new(:tenant_id, :id, :title, :finished_at, :created_at, :updated_at, keyword_init: true)
+    # PlayerScoreRow = Struct.new(:tenant_id, :id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at, keyword_init: true)
 
     def initialize(*, **)
       super
