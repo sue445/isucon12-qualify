@@ -575,60 +575,28 @@ module Isuports
             0
           end
 
-        # player_scoreを読んでいるときに更新が走ると不整合が起こるのでロックを取得する
-        flock_by_tenant_id(v.tenant_id) do
-          # ranks = []
-          # scored_player_set = Set.new
-          # tenant_db.execute('SELECT * FROM player_score WHERE tenant_id = ? AND competition_id = ? ORDER BY row_num DESC', [tenant.id, competition_id]) do |row|
-          #   ps = PlayerScoreRow.new(row)
-          #   # player_scoreが同一player_id内ではrow_numの降順でソートされているので
-          #   # 現れたのが2回目以降のplayer_idはより大きいrow_numでスコアが出ているとみなせる
-          #   if scored_player_set.member?(ps.player_id)
-          #     next
-          #   end
-          #   scored_player_set.add(ps.player_id)
-          #   player = retrieve_player(tenant_db, ps.player_id)
-          #   ranks.push(CompetitionRank.new(
-          #     score: ps.score,
-          #     player_id: player.id,
-          #     player_display_name: player.display_name,
-          #     row_num: ps.row_num,
-          #   ))
-          # end
-          #
-          # # ranks.sort! do |a, b|
-          # #   if a.score == b.score
-          # #     a.row_num <=> b.row_num
-          # #   else
-          # #     b.score <=> a.score
-          # #   end
-          # # end
-          #
-          # ranks.sort_by! { |a| [-a.score, a.row_num] }
+        ranks = get_ranking_from_redis(tenant_id: v.tenant_id, competition_id: competition_id)
 
-          ranks = get_ranking_from_redis(tenant_id: v.tenant_id, competition_id: competition_id)
-
-          paged_ranks = ranks.drop(rank_after).take(100).map.with_index do |rank, i|
-            {
-              rank: rank_after + i + 1,
-              score: rank.score,
-              player_id: rank.player_id,
-              player_display_name: rank.player_display_name,
-            }
-          end
-
-          json(
-            status: true,
-            data: {
-              competition: {
-                id: competition.id,
-                title: competition.title,
-                is_finished: !competition.finished_at.nil?,
-              },
-              ranks: paged_ranks,
-            },
-          )
+        paged_ranks = ranks.drop(rank_after).take(100).map.with_index do |rank, i|
+          {
+            rank: rank_after + i + 1,
+            score: rank.score,
+            player_id: rank.player_id,
+            player_display_name: rank.player_display_name,
+          }
         end
+
+        json(
+          status: true,
+          data: {
+            competition: {
+              id: competition.id,
+              title: competition.title,
+              is_finished: !competition.finished_at.nil?,
+            },
+            ranks: paged_ranks,
+          },
+        )
       end
     end
 
