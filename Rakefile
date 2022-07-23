@@ -14,9 +14,9 @@ require "json"
 
 # デプロイ先のサーバ
 HOSTS = {
-  host01: "isucon-01",
-  # host02: "isucon-02",
-  # host03: "isucon-03",
+  host01: "isucon-01", # nginx, MySQL, auth
+  host02: "isucon-02", # app
+  host03: "isucon-03", # auth
 }
 
 INITIALIZE_ENDPOINT = "http://#{HOSTS[:host01]}/initialize"
@@ -90,14 +90,14 @@ namespace :deploy do
       # mysql, mariadb
       case name
       when :host01
-        # exec ip_address, "sudo cp infra/mysql/isucon.cnf /etc/mysql/conf.d/isucon.cnf"
+        exec ip_address, "sudo cp infra/mysql/isucon.cnf /etc/mysql/conf.d/isucon.cnf"
         exec ip_address, "sudo cp infra/mysql/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf "
-        # exec ip_address, "sudo mysqld --verbose --help > /dev/null"
+        exec ip_address, "sudo mysqld --verbose --help > /dev/null"
         # TODO: mariadbで動いてないか確認する
-        # exec_service ip_address, service: "mysql", enabled: true
+        exec_service ip_address, service: "mysql", enabled: true
         # exec_service ip_address, service: "mariadb", enabled: true
       else
-        # exec_service ip_address, service: "mysql", enabled: false
+        exec_service ip_address, service: "mysql", enabled: false
         # exec_service ip_address, service: "mariadb", enabled: false
       end
 
@@ -114,7 +114,7 @@ namespace :deploy do
 
       # app
       case name
-      when :host01
+      when :host02
         exec ip_address, "#{BUNDLE} config set --local path 'vendor/bundle'", cwd: RUBY_APP_DIR
         exec ip_address, "#{BUNDLE} config set --local jobs $(nproc)", cwd: RUBY_APP_DIR
         exec ip_address, "#{BUNDLE} config set --local without development test", cwd: RUBY_APP_DIR
