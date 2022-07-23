@@ -140,7 +140,7 @@ namespace :deploy do
 
       # sidekiq
       case name
-      when :host01
+      when :host02
         exec ip_address, "#{BUNDLE} config set --local path 'vendor/bundle'", cwd: RUBY_APP_DIR
         exec ip_address, "#{BUNDLE} config set --local jobs $(nproc)", cwd: RUBY_APP_DIR
         exec ip_address, "#{BUNDLE} config set --local without development test", cwd: RUBY_APP_DIR
