@@ -433,9 +433,31 @@ module Isuports
           end
 
           tenant_db.execute('DELETE FROM player_score WHERE tenant_id = ? AND competition_id = ?', [v.tenant_id, competition_id])
+
+          # player_score_rows.each do |ps|
+          #   tenant_db.execute('INSERT INTO player_score (id, tenant_id, player_id, competition_id, score, row_num, created_at, updated_at) VALUES (:id, :tenant_id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at)', ps.to_h)
+          # end
+
+          sql = <<~SQL.dup
+            INSERT INTO player_score (id, tenant_id, player_id, competition_id, score, row_num, created_at, updated_at) VALUES
+          SQL
+          sql << " "
+          sql << (["(?, ?, ?, ?, ?, ?, ?, ?)"] * player_score_rows.size).join(", ")
+
+          sql_values = []
           player_score_rows.each do |ps|
-            tenant_db.execute('INSERT INTO player_score (id, tenant_id, player_id, competition_id, score, row_num, created_at, updated_at) VALUES (:id, :tenant_id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at)', ps.to_h)
+            sql_values << [
+              ps.id,
+              ps.tenant_id,
+              ps.player_id,
+              ps.competition_id,
+              ps.score,
+              ps.row_num,
+              ps.created_at,
+              ps.updated_at,
+            ]
           end
+          tenant_db.execute(sql, sql_values)
 
           # json(
           #   status: true,
