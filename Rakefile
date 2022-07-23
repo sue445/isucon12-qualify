@@ -14,7 +14,7 @@ require "json"
 
 # デプロイ先のサーバ
 HOSTS = {
-  # host01: "isucon-01",
+  host01: "isucon-01",
   # host02: "isucon-02",
   # host03: "isucon-03",
 }
@@ -22,20 +22,20 @@ HOSTS = {
 INITIALIZE_ENDPOINT = "http://#{HOSTS[:host01]}/initialize"
 
 # デプロイ先のカレントディレクトリ
-CURRENT_DIR = "/home/isucon/isutrain"
+CURRENT_DIR = "/home/isucon/webapp"
 
 # rubyアプリのディレクトリ
-RUBY_APP_DIR = "/home/isucon/APP_NAME/webapp/ruby"
+RUBY_APP_DIR = "/home/isucon/webapp/ruby"
 
 # アプリのservice名
 # NOTE: `sudo systemctl list-unit-files --type=service | grep isu` などで調べる
-APP_SERVICE_NAME = "isuxxxxx-ruby.service"
+APP_SERVICE_NAME = "isuports.service"
 
 # デプロイを記録するissue
-GITHUB_REPO     = "sue445/isuconXX-qualify"
+GITHUB_REPO     = "sue445/isucon12-qualify"
 GITHUB_ISSUE_ID = 1
 
-RUBY_VERSION_PATH = "#{__dir__}/webapp/ruby/.ruby-version"
+RUBY_VERSION_PATH = "#{__dir__}/ruby/.ruby-version"
 
 ruby_version = File.read(RUBY_VERSION_PATH).strip
 
@@ -91,7 +91,7 @@ namespace :deploy do
       case name
       when :host01
         # exec ip_address, "sudo cp infra/mysql/isucon.cnf /etc/mysql/conf.d/isucon.cnf"
-        # exec ip_address, "sudo cp infra/mysql/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf "
+        exec ip_address, "sudo cp infra/mysql/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf "
         # exec ip_address, "sudo mysqld --verbose --help > /dev/null"
         # TODO: mariadbで動いてないか確認する
         # exec_service ip_address, service: "mysql", enabled: true
@@ -104,12 +104,12 @@ namespace :deploy do
       # nginx
       case name
       when :host01
-        # exec ip_address, "sudo cp infra/nginx/nginx.conf /etc/nginx/nginx.conf"
-        # exec ip_address, "sudo nginx -t"
-        # exec ip_address, "sudo chmod 644 /var/log/nginx/*.log"
-        # exec_service ip_address, service: "nginx", enabled: true
+        exec ip_address, "sudo cp infra/nginx/nginx.conf /etc/nginx/nginx.conf"
+        exec ip_address, "sudo nginx -t"
+        exec ip_address, "sudo chmod 644 /var/log/nginx/*.log"
+        exec_service ip_address, service: "nginx", enabled: true
       else
-        # exec_service ip_address, service: "nginx", enabled: false
+        exec_service ip_address, service: "nginx", enabled: false
       end
 
       # app
@@ -118,14 +118,14 @@ namespace :deploy do
         # exec ip_address, "#{BUNDLE} config set --local path 'vendor/bundle'", cwd: RUBY_APP_DIR
         # exec ip_address, "#{BUNDLE} config set --local jobs $(nproc)", cwd: RUBY_APP_DIR
         # exec ip_address, "#{BUNDLE} config set --local without development test", cwd: RUBY_APP_DIR
-
-        # exec ip_address, "#{BUNDLE} install", cwd: RUBY_APP_DIR
-        # FIXME: ruby 3.2.0-devだとddtraceのnative extensionのbuildに失敗するのでこっちを使う
+        #
+        # # exec ip_address, "#{BUNDLE} install", cwd: RUBY_APP_DIR
+        # # FIXME: ruby 3.2.0-devだとddtraceのnative extensionのbuildに失敗するのでこっちを使う
         # exec ip_address, "DD_PROFILING_NO_EXTENSION=true #{BUNDLE} install", cwd: RUBY_APP_DIR
 
-        # exec_service ip_address, service: APP_SERVICE_NAME, enabled: true
+        exec_service ip_address, service: APP_SERVICE_NAME, enabled: true
       else
-        # exec_service ip_address, service: APP_SERVICE_NAME, enabled: false
+        exec_service ip_address, service: APP_SERVICE_NAME, enabled: false
       end
 
       # redis
@@ -214,6 +214,6 @@ task :record do
   end
 end
 
-task :all => [:setup, :deploy, :initialize, :record]
+task :all => [:setup, :deploy, :record]
 
 task :default => :all

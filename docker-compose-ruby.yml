@@ -7,6 +7,14 @@ services:
       ISUCON_DB_USER: isucon
       ISUCON_DB_PASSWORD: isucon
       ISUCON_DB_NAME: isuports
+      RUBYOPT: "--yjit"
+      PUMA_PORT: 3000
+      PUMA_THREADS_MIN: 5
+      PUMA_THREADS_MAX: 16
+      PUMA_LOGGING: false
+      PUMA_WORKER_KILLER: false
+      SENTRY_DSN: ${SENTRY_DSN}
+      RACK_ENV: production
     network_mode: host
     volumes:
       - /home/isucon/webapp/tenant_db:/home/isucon/webapp/tenant_db
@@ -15,3 +23,21 @@ services:
       - /home/isucon/initial_data:/home/isucon/initial_data
       - /home/isucon/tmp:/home/isucon/tmp
     init: true
+
+  datadog:
+    image: gcr.io/datadoghq/agent:latest
+
+    depends_on:
+      - webapp
+
+    restart: always
+
+    environment:
+      - DD_API_KEY
+      - DD_LOG_LEVEL=WARN
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/proc/:/host/proc/:ro"
+      - "/sys/fs/cgroup/:/host/sys/fs/cgroup:ro"
+      - "/etc/datadog-agent/conf.d/:/etc/datadog-agent/conf.d/:ro"
