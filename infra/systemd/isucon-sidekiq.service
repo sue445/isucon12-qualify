@@ -69,7 +69,7 @@ WorkingDirectory=/home/isucon/webapp/ruby
 
 # TODO: Fix this
 ExecStart=/home/isucon/local/ruby/versions/3.2.0-dev/bin/bundle exec sidekiq -e production -C /home/isucon/webapp/ruby/config/sidekiq.yml -r /home/isucon/webapp/ruby/config/sidekiq.rb
-EnvironmentFile=/home/isucon/webapp/env
+EnvironmentFile=/home/isucon/webapp/env.sh
 EnvironmentFile=/home/isucon/secret_env
 User=isucon
 
