@@ -680,12 +680,17 @@ module Isuports
         raise HttpError.new(500, "error command execution: #{out}")
       end
 
-      # 初期データで手動でworkerを実行する
-      admin_db.xquery('SELECT id FROM tenant').each do |tenant|
-        connect_to_tenant_db(tenant[:id]) do |tenant_db|
-          tenant_db.execute('SELECT * FROM competition WHERE tenant_id=?', [tenant[:id]]) do |row|
-            comp = CompetitionRow.new(row)
-            TenantRankingWorker.new.perform(tenant[:id], comp.id)
+      ThreadHelper.trace do |tracer|
+        # 初期データで手動でworkerを実行する
+        admin_db.xquery('SELECT id FROM tenant').each do |tenant|
+          connect_to_tenant_db(tenant[:id]) do |tenant_db|
+            tenant_db.execute('SELECT * FROM competition WHERE tenant_id=?', [tenant[:id]]) do |row|
+              comp = CompetitionRow.new(row)
+
+              tracer.trace(thread_args: [tenant[:id], comp.id]) do |tenant_id, comp_id|
+                TenantRankingWorker.new.perform(tenant_id, comp_id)
+              end
+            end
           end
         end
       end
