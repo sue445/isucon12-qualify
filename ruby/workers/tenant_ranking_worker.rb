@@ -5,6 +5,8 @@ require_relative "../config/sentry_methods"
 require_relative "../config/redis_methods"
 require_relative "../isucon_helper"
 
+require "sqlite3"
+
 class TenantRankingWorker
   include Sidekiq::Worker
   include SentryMethods
