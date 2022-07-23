@@ -1,4 +1,5 @@
 require "sqlite3"
+require "securerandom"
 
 module IsuconHelper
   ROLE_ADMIN = 'admin'
@@ -90,21 +91,23 @@ module IsuconHelper
 
   # システム全体で一意なIDを生成する
   def dispense_id
-    last_exception = nil
-    100.times do |i|
-      begin
-        admin_db.xquery('REPLACE INTO id_generator (stub) VALUES (?)', 'a')
-      rescue Mysql2::Error => e
-        if e.error_number == 1213 # deadlock
-          last_exception = e
-          next
-        else
-          raise e
-        end
-      end
-      return admin_db.last_id.to_s(16)
-    end
-    raise last_exception
+    SecureRandom.uuid
+
+    # last_exception = nil
+    # 100.times do |i|
+    #   begin
+    #     admin_db.xquery('REPLACE INTO id_generator (stub) VALUES (?)', 'a')
+    #   rescue Mysql2::Error => e
+    #     if e.error_number == 1213 # deadlock
+    #       last_exception = e
+    #       next
+    #     else
+    #       raise e
+    #     end
+    #   end
+    #   return admin_db.last_id.to_s(16)
+    # end
+    # raise last_exception
   end
 
   # リクエストヘッダをパースしてViewerを返す
