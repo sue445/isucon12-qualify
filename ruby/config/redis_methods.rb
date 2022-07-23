@@ -53,17 +53,17 @@ module RedisMethods
     $redis.flushall
   end
 
-  def get_value_from_redis(key)
-    json = $redis.get(key)
-    return nil unless json
+  def get_ranking_from_redis(tenant_id:, competition_id:)
+    cached_response = $redis.get(ranking_key(tenant_id:tenant_id, competition_id: competition_id))
+    return nil unless cached_response
 
-    Oj.load(json)
+    Marshal.load(cached_response)
   end
 
-  def save_value_to_redis(key, value)
-    data = Oj.dump(value)
+  def save_ranking_to_redis(tenant_id:, competition_id:, value:)
+    data = Marshal.dump(value)
 
-    $redis.set(key, data)
+    $redis.set(ranking_key(tenant_id:tenant_id, competition_id: competition_id), data)
   end
 
   def ranking_key(tenant_id:, competition_id:)
