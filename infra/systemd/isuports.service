@@ -10,13 +10,13 @@ Type=simple
 User=isucon
 Group=isucon
 WorkingDirectory=/home/isucon/webapp
-# ExecStart=docker compose -f docker-compose-go.yml up --build
-# ExecStop=docker compose -f docker-compose-go.yml down
+ExecStart=docker compose -f docker-compose-ruby.yml up --build
+ExecStop=docker compose -f docker-compose-ruby.yml down
 
-ExecStart=/home/isucon/local/ruby/versions/3.2.0-dev/bin/bundle exec puma -C config/puma_isucon.rb
-ExecStop=/bin/kill -s QUIT $MAINPID
-EnvironmentFile=/home/isucon/webapp/env.sh
-EnvironmentFile=/home/isucon/secret_env
-Environment=RACK_ENV=production
+#ExecStart=/home/isucon/local/ruby/versions/3.2.0-dev/bin/bundle exec puma -C config/puma_isucon.rb
+#ExecStop=/bin/kill -s QUIT $MAINPID
+#EnvironmentFile=/home/isucon/webapp/env.sh
+#EnvironmentFile=/home/isucon/secret_env
+#Environment=RACK_ENV=production
 
 Restart=always
