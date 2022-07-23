@@ -34,6 +34,8 @@ require_relative "./config/enable_monitoring"
 # NOTE: enable_monitoringでddtraceとdatadog_thread_tracerをrequireしてるのでenable_monitoringをrequireした後でrequireする必要がある
 require_relative "./config/thread_helper"
 
+require_relative "./workers/tenant_ranking_worker"
+
 module Isuports
   class App < Sinatra::Base
     include SentryMethods
@@ -430,6 +432,8 @@ module Isuports
           player_score_rows.each do |ps|
             tenant_db.execute('INSERT INTO player_score (id, tenant_id, player_id, competition_id, score, row_num, created_at, updated_at) VALUES (:id, :tenant_id, :player_id, :competition_id, :score, :row_num, :created_at, :updated_at)', ps.to_h)
           end
+
+          TenantRankingWorker.perform_async(v.tenant_id, competition_id)
 
           json(
             status: true,
