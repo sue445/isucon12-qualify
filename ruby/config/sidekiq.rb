@@ -2,6 +2,7 @@
 require "sidekiq"
 require_relative "../workers/sidekiq_stats_worker"
 require_relative "../workers/tenant_ranking_worker"
+require_relative "../workers/tenant_player_score_worker"
 
 # TODO: workerクラスをrequireした後にrequireすること
 require_relative "./enable_monitoring"
