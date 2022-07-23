@@ -55,7 +55,7 @@ module Isuports
 
     TENANT_DB_SCHEMA_FILE_PATH = '../sql/tenant/10_schema.sql'
     INITIALIZE_SCRIPT = '../sql/init.sh'
-    COOKIE_NAME = 'isuports_session'
+    # COOKIE_NAME = 'isuports_session'
 
     # ROLE_ADMIN = 'admin'
     # ROLE_ORGANIZER = 'organizer'

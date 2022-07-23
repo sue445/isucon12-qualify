@@ -3,6 +3,7 @@ module IsuconHelper
   ROLE_ORGANIZER = 'organizer'
   ROLE_PLAYER = 'player'
   ROLE_NONE = 'none'
+  COOKIE_NAME = 'isuports_session'
 
   class HttpError < StandardError
     attr_reader :code
