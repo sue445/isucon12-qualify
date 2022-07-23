@@ -16,7 +16,7 @@ require "json"
 HOSTS = {
   host01: "isucon-01", # nginx, MySQL, auth
   host02: "isucon-02", # app
-  host03: "isucon-03", # app
+  host03: "isucon-03", # auth
 }
 
 INITIALIZE_ENDPOINT = "http://#{HOSTS[:host01]}/initialize"
@@ -114,7 +114,7 @@ namespace :deploy do
 
       # app
       case name
-      when :host02, :host03
+      when :host02
         exec ip_address, "#{BUNDLE} config set --local path 'vendor/bundle'", cwd: RUBY_APP_DIR
         exec ip_address, "#{BUNDLE} config set --local jobs $(nproc)", cwd: RUBY_APP_DIR
         exec ip_address, "#{BUNDLE} config set --local without development test", cwd: RUBY_APP_DIR
