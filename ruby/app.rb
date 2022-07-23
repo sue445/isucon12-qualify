@@ -16,7 +16,7 @@ require_relative 'sqltrace'
 
 module Isuports
   class App < Sinatra::Base
-    enable :logging
+    disable :logging
     set :show_exceptions, :after_handler
     configure :development do
       require 'sinatra/reloader'
@@ -68,7 +68,7 @@ module Isuports
     # エラー処理
     error HttpError do
       e = env['sinatra.error']
-      logger.error("error at #{request.path}: #{e.message}")
+      
       content_type :json
       status e.code
       JSON.dump(status: false)
@@ -118,7 +118,7 @@ module Isuports
           end
         database_klass.new(path, results_as_hash: true) do |db|
           db.busy_timeout = 5000
-          ret = block.call(db)
+          ret = yield(db)
         end
         ret
       end
@@ -209,7 +209,8 @@ module Isuports
         end
 
         # テナントの存在確認
-        tenant = admin_db.xquery('SELECT * FROM tenant WHERE name = ?', tenant_name).first
+        # TODO: Remove needless columns if necessary
+        tenant = admin_db.xquery('SELECT `id`, `name`, `display_name`, `created_at`, `updated_at` FROM tenant WHERE name = ?', tenant_name).first
         unless tenant
           raise HttpError.new(401, 'tenant not found')
         end
@@ -263,7 +264,7 @@ module Isuports
 
         File.open(path, File::RDONLY | File::CREAT, 0600) do |f|
           f.flock(File::LOCK_EX)
-          block.call
+          yield
         end
       end
 
@@ -424,7 +425,8 @@ module Isuports
       #   を合計したものを
       # テナントの課金とする
       tenant_billings = []
-      admin_db.xquery('SELECT * FROM tenant ORDER BY id DESC').each do |row|
+      # TODO: Remove needless columns if necessary
+      admin_db.xquery('SELECT `id`, `name`, `display_name`, `created_at`, `updated_at` FROM tenant ORDER BY id DESC').each do |row|
         t = TenantRow.new(row)
         if before_id && before_id <= t.id
           next
@@ -763,7 +765,8 @@ module Isuports
         end
 
         now = Time.now.to_i
-        tenant = TenantRow.new(admin_db.xquery('SELECT * FROM tenant WHERE id = ?', v.tenant_id).first)
+        # TODO: Remove needless columns if necessary
+        tenant = TenantRow.new(admin_db.xquery('SELECT `id`, `name`, `display_name`, `created_at`, `updated_at` FROM tenant WHERE id = ?', v.tenant_id).first)
         admin_db.xquery('INSERT INTO visit_history (player_id, tenant_id, competition_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?)', v.player_id, tenant.id, competition_id, now, now)
 
         rank_after_str = params[:rank_after]
