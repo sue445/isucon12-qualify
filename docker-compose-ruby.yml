@@ -7,6 +7,12 @@ services:
       ISUCON_DB_USER: isucon
       ISUCON_DB_PASSWORD: isucon
       ISUCON_DB_NAME: isuports
+      RUBYOPT: "--yjit"
+      PUMA_PORT: 3000
+      PUMA_THREADS_MIN: 5
+      PUMA_THREADS_MAX: 16
+      PUMA_LOGGING: false
+      PUMA_WORKER_KILLER: false
     network_mode: host
     volumes:
       - /home/isucon/webapp/tenant_db:/home/isucon/webapp/tenant_db
