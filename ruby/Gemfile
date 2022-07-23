@@ -40,5 +40,5 @@ end
 # gem "connection_pool"
 # gem "puma_worker_killer", require: false
 # gem "redis"
-# gem "sidekiq"
-# gem "sidekiq-cron"
+gem "sidekiq"
+gem "sidekiq-cron"
