@@ -577,6 +577,12 @@ module Isuports
 
         ranks = get_ranking_from_redis(tenant_id: v.tenant_id, competition_id: competition_id)
 
+        # redisにランキングがなかった場合は念の為workerを再実行する
+        if ranks.empty?
+          TenantRankingWorker.new.perform(v.tenant_id, competition_id)
+          ranks = get_ranking_from_redis(tenant_id: v.tenant_id, competition_id: competition_id)
+        end
+
         paged_ranks = ranks.drop(rank_after).take(100).map.with_index do |rank, i|
           {
             rank: rank_after + i + 1,
