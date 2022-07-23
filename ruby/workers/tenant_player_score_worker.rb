@@ -18,7 +18,7 @@ class TenantPlayerScoreWorker
 
     with_sentry do
       connect_to_tenant_db(tenant_id) do |tenant_db|
-        competitions = tenant_db.execute('SELECT * FROM competition WHERE tenant_id = ? ORDER BY created_at ASC', [v.tenant_id]).map { |row| CompetitionRow.new(row) }
+        competitions = tenant_db.execute('SELECT * FROM competition WHERE tenant_id = ? ORDER BY created_at ASC', [tenant_id]).map { |row| CompetitionRow.new(row) }
 
         # player_scoreを読んでいるときに更新が走ると不整合が起こるのでロックを取得する
         flock_by_tenant_id(tenant_id) do
