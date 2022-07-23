@@ -118,7 +118,7 @@ module Isuports
           end
         database_klass.new(path, results_as_hash: true) do |db|
           db.busy_timeout = 5000
-          ret = block.call(db)
+          ret = yield(db)
         end
         ret
       end
@@ -264,7 +264,7 @@ module Isuports
 
         File.open(path, File::RDONLY | File::CREAT, 0600) do |f|
           f.flock(File::LOCK_EX)
-          block.call
+          yield
         end
       end
 
