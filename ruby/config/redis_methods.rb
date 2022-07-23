@@ -69,4 +69,21 @@ module RedisMethods
   def ranking_key(tenant_id:, competition_id:)
     "ranking:#{tenant_id}:#{competition_id}"
   end
+
+  def get_player_score_from_redis(tenant_id:, player_id:)
+    cached_response = $redis.get(player_score_key(tenant_id:tenant_id, player_id: player_id))
+    return nil unless cached_response
+
+    Marshal.load(cached_response)
+  end
+
+  def save_player_score_to_redis(tenant_id:, player_id:, value:)
+    data = Marshal.dump(value)
+
+    $redis.set(player_score_key(tenant_id:tenant_id, player_id: player_id), data)
+  end
+
+  def player_score_key(tenant_id:, player_id:)
+    "player_score:#{tenant_id}:#{player_id}"
+  end
 end
