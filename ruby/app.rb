@@ -679,6 +679,17 @@ module Isuports
       unless status.success?
         raise HttpError.new(500, "error command execution: #{out}")
       end
+
+      # 初期データで手動でworkerを実行する
+      admin_db.xquery('SELECT id FROM tenant').each do |tenant|
+        connect_to_tenant_db(tenant[:id]) do |tenant_db|
+          tenant_db.execute('SELECT * FROM competition WHERE tenant_id=?', [t.id]) do |row|
+            comp = CompetitionRow.new(row)
+            TenantRankingWorker.new.perform(tenant[:id], comp.id)
+          end
+        end
+      end
+
       json(
         status: true,
         data: {
